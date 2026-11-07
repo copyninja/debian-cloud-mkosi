@@ -7,6 +7,7 @@ build/
 *.tar*
 *.manifest
 *.changelog
+initrd*
 .mkosi*
 
 # Temporary files
