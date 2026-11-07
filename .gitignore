@@ -1,5 +1,7 @@
 # mkosi build outputs & caches
 build/
+output*/
+image-*/
 official-images/
 *.raw
 *.qcow2
