@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="${BUILDROOT:-${1:-}}"
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+
+if [ -d "${SCRIPT_DIR}/mkosi.postinst.d" ]; then
+    for script in "${SCRIPT_DIR}"/mkosi.postinst.d/*.sh; do
+        [ -f "$script" ] || continue
+        echo "==> [postinst] Executing: $(basename "$script")"
+        bash "$script" "$ROOT"
+    done
+fi
