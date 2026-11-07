@@ -1,0 +1,16 @@
+# mkosi build outputs & caches
+build/
+*.raw
+*.qcow2
+*.vmdk
+*.vhd
+*.tar*
+*.manifest
+*.changelog
+.mkosi*
+
+# Temporary files
+*.swp
+*.bak
+*~
+.DS_Store
