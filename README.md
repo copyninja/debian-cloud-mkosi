@@ -8,14 +8,14 @@ This repository modernizes the legacy FAI (Fully Automatic Installation) / GRUB2
 
 ## Architecture Overview
 
-| Component | Target Implementation |
-|---|---|
-| **Build Engine** | `mkosi` v26+ (unprivileged `systemd-nspawn`) |
-| **Partitioning** | Declarative `systemd-repart` (`mkosi.repart/`) |
-| **Root Filesystem** | `btrfs` with `zstd:1` compression and subvolumes (`@`, `@home`, `@var_log`, `@opt`, `@snapshots`) |
-| **Bootloader** | `systemd-boot` with Unified Kernel Images (UKI via `systemd-stub`) |
-| **Cloud Profiles** | Modular profiles under `mkosi.profiles/` (`aws`, `azure`, `gcp`, `nocloud`, `qemu`, `generic`, `genericcloud`) |
-| **Debian Suites** | Release profiles under `mkosi.profiles/` (`bookworm`, `trixie`, `forky`, `sid`) |
+| Component           | Target Implementation                                                                                          |
+|---------------------|----------------------------------------------------------------------------------------------------------------|
+| **Build Engine**    | `mkosi` v26+ (unprivileged `systemd-nspawn`)                                                                   |
+| **Partitioning**    | Declarative `systemd-repart` (`mkosi.repart/`)                                                                 |
+| **Root Filesystem** | `btrfs` with `zstd:1` compression and subvolumes (`@`, `@home`, `@var_log`, `@opt`, `@snapshots`)              |
+| **Bootloader**      | `systemd-boot` with Unified Kernel Images (UKI via `systemd-stub`)                                             |
+| **Cloud Profiles**  | Modular profiles under `mkosi.profiles/` (`aws`, `azure`, `gcp`, `nocloud`, `qemu`, `generic`, `genericcloud`) |
+| **Debian Suites**   | Release profiles under `mkosi.profiles/` (`bookworm`, `trixie`, `forky`, `sid`)                                |
 
 ---
 

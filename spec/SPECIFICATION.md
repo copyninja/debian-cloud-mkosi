@@ -534,7 +534,7 @@ echo "==> Image Parity Verification Completed."
 Manifest generation is enabled in `mkosi.conf` via:
 ```ini
 [Output]
-ManifestFormat=json,changelog
+ManifestFormat=json
 ```
 
 Build and verification invocation:
