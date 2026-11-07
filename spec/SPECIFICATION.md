@@ -101,6 +101,7 @@ CopyFiles=/boot:/
 CopyFiles=/efi:/
 SizeMinBytes=512M
 SizeMaxBytes=512M
+MountPoint=/efi:umask=0077
 ```
 
 #### `mkosi.repart/10-root.conf`
@@ -112,12 +113,12 @@ Compression=zstd
 CompressionLevel=1
 CopyFiles=/
 Minimize=guess
-Subvolumes=
-    @:/
-    @home:/home
-    @var_log:/var/log
-    @opt:/opt
-    @snapshots:/.snapshots
+Subvolumes=/home /var/log /opt /.snapshots
+MountPoint="/":"subvol=@,compress=zstd:1,noatime,space_cache=v2,x-systemd.growfs"
+MountPoint="/home":"subvol=@home,compress=zstd:1,noatime,space_cache=v2"
+MountPoint="/var/log":"subvol=@var_log,compress=zstd:1,noatime,space_cache=v2"
+MountPoint="/opt":"subvol=@opt,compress=zstd:1,noatime,space_cache=v2"
+MountPoint="/.snapshots":"subvol=@snapshots,compress=zstd:1,noatime,space_cache=v2"
 ```
 
 > **[IMPORTANT] Requirement for Btrfs Subvolumes in `mkosi`:**
