@@ -363,7 +363,6 @@ Packages=
     init
     systemd
     systemd-resolved
-    systemd-timesyncd
     libpam-systemd
     libnss-resolve
     libnss-myhostname
