@@ -43,15 +43,15 @@ MNT_OFFICIAL=$(mktemp -d /tmp/mnt-official.XXXXXX)
 
 cleanup() {
     echo "==> Cleaning up image mount points..."
-    systemd-dissect --detach "$MNT_MKOSI" 2>/dev/null || true
-    systemd-dissect --detach "$MNT_OFFICIAL" 2>/dev/null || true
-    rm -rf "$MNT_MKOSI" "$MNT_OFFICIAL"
+    sudo systemd-dissect -U "$MNT_MKOSI" 2>/dev/null || true
+    sudo systemd-dissect -U "$MNT_OFFICIAL" 2>/dev/null || true
+    rm -rf "$MNT_MKOSI" "$MNT_OFFICIAL" 2>/dev/null || true
 }
 trap cleanup EXIT
 
 echo "==> Mounting disk images using systemd-dissect..."
-systemd-dissect --mount "$MKOSI_IMG" "$MNT_MKOSI"
-systemd-dissect --mount "$OFFICIAL_IMG" "$MNT_OFFICIAL"
+sudo systemd-dissect --mount "$MKOSI_IMG" "$MNT_MKOSI"
+sudo systemd-dissect --mount "$OFFICIAL_IMG" "$MNT_OFFICIAL"
 
 echo ""
 echo "=========================================================="
@@ -122,12 +122,12 @@ echo ""
 echo "=========================================================="
 echo "==> 5. Diffoscope Deep Inspection..."
 echo "=========================================================="
-if command -v diffoscope &>/dev/null; then
+if [ "${DIFFOSCOPE:-0}" = "1" ] && command -v diffoscope &>/dev/null; then
     echo "Running diffoscope (generating /tmp/image-parity-report.html)..."
     diffoscope --html /tmp/image-parity-report.html "$MKOSI_IMG" "$OFFICIAL_IMG" || true
     echo "Parity report generated at: /tmp/image-parity-report.html"
 else
-    echo "[INFO] 'diffoscope' is not installed on host. Skipping deep HTML diff report."
+    echo "[INFO] Deep binary diffoscope inspection skipped (set DIFFOSCOPE=1 to enable)."
 fi
 
 echo ""
