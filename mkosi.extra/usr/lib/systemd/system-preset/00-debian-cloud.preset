@@ -1,0 +1,5 @@
+# Enable core systemd cloud services
+enable systemd-networkd.service
+enable systemd-resolved.service
+enable systemd-timesyncd.service
+enable ssh.service
