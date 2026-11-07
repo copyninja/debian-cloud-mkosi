@@ -1,5 +1,6 @@
 # mkosi build outputs & caches
 build/
+official-images/
 *.raw
 *.qcow2
 *.vmdk
