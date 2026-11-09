@@ -162,7 +162,7 @@ Packages=
 
 KernelCommandLine=
     console=tty1
-    rootflags=subvol=@,compress=zstd:1,noatime
+    rootflags=compress=zstd:1,noatime
     rw
     quiet
 ```
