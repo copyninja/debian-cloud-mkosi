@@ -157,6 +157,7 @@ Bootloader=systemd-boot
 Packages=
     linux-image-cloud-amd64
     systemd-boot-efi
+    systemd-boot-tools
     btrfs-progs
     zstd
 
@@ -172,7 +173,7 @@ KernelCommandLine=
 > - **Debian 14 (Forky) & Sid**: Upstream has transitioned to `dracut` (dropping `cloud-initramfs-growroot` and `initramfs-tools`). The `forky` profile explicitly sets `InitrdGenerator=dracut` and installs `dracut`.
 
 ### 5.3 Debian Architecture & EFI Requirements
-- **Package Dependency**: Debian separates `systemd-boot` EFI binaries into `systemd-boot-efi`. This package MUST be included in `Packages=` for `systemd-boot` to install `/usr/lib/systemd/boot/efi/systemd-bootx64.efi` (or `systemd-bootaa64.efi`).
+- **Package Dependency**: Debian separates `systemd-boot` EFI binaries into `systemd-boot-efi` (providing `/usr/lib/systemd/boot/efi/systemd-boot*.efi`) and the `bootctl` management CLI utility into `systemd-boot-tools`. Both packages MUST be included in `Packages=`.
 - **Unified Kernel Images (UKI)**: `mkosi` automatically combines the kernel (`vmlinuz`), initrd, and kernel command line into a UKI binary placed in `EFI/Linux/` inside the ESP partition.
 - **Supported Architectures**:
   - `x86_64` (AMD64): `systemd-boot` EFI bootloader.
