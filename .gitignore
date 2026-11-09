@@ -11,6 +11,7 @@ official-images/
 *.manifest
 *.changelog
 initrd*
+image*
 .mkosi*
 
 # Temporary files
