@@ -12,10 +12,10 @@ if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
     echo ""
     echo "Audits six dimensions of parity:"
     echo "  1. Installed package list & versions (dpkg-query)"
-    echo "  2. /etc configuration tree diff"
-    echo "  3. Enabled systemd services"
-    echo "  4. User accounts (/etc/passwd) and privileges"
-    echo "  5. Group accounts (/etc/group)"
+    echo "  2. APT repository & mirror configuration (/etc/apt)"
+    echo "  3. /etc configuration tree diff"
+    echo "  4. Enabled systemd services"
+    echo "  5. User accounts (/etc/passwd) and privileges"
     echo "  6. Binary/structural diff via diffoscope (if available)"
     exit 0
 fi
@@ -41,17 +41,22 @@ fi
 MNT_MKOSI=$(mktemp -d /tmp/mnt-mkosi.XXXXXX)
 MNT_OFFICIAL=$(mktemp -d /tmp/mnt-official.XXXXXX)
 
+DISSECT_BIN="/bin/systemd-dissect"
+if [ ! -x "$DISSECT_BIN" ]; then
+    DISSECT_BIN="$(command -v systemd-dissect)"
+fi
+
 cleanup() {
     echo "==> Cleaning up image mount points..."
-    sudo systemd-dissect -U "$MNT_MKOSI" 2>/dev/null || true
-    sudo systemd-dissect -U "$MNT_OFFICIAL" 2>/dev/null || true
+    sudo "$DISSECT_BIN" -U "$MNT_MKOSI" 2>/dev/null || true
+    sudo "$DISSECT_BIN" -U "$MNT_OFFICIAL" 2>/dev/null || true
     rm -rf "$MNT_MKOSI" "$MNT_OFFICIAL" 2>/dev/null || true
 }
 trap cleanup EXIT
 
 echo "==> Mounting disk images using systemd-dissect..."
-sudo systemd-dissect --mount "$MKOSI_IMG" "$MNT_MKOSI"
-sudo systemd-dissect --mount "$OFFICIAL_IMG" "$MNT_OFFICIAL"
+sudo "$DISSECT_BIN" --mount "$MKOSI_IMG" "$MNT_MKOSI"
+sudo "$DISSECT_BIN" --mount "$OFFICIAL_IMG" "$MNT_OFFICIAL"
 
 echo ""
 echo "=========================================================="
@@ -73,13 +78,45 @@ rm -f "$PKG_MKOSI" "$PKG_OFFICIAL" /tmp/pkg-diff.txt
 
 echo ""
 echo "=========================================================="
-echo "==> 2. Auditing /etc Configuration Tree..."
+echo "==> 2. Auditing APT Repository & Sources Configuration..."
+echo "=========================================================="
+APT_ERRORS=0
+
+for f in "/etc/apt/sources.list" "/etc/apt/sources.list.d/debian.sources" "/etc/apt/mirrors/debian.list" "/etc/apt/mirrors/debian-security.list"; do
+    if [ ! -f "${MNT_MKOSI}${f}" ]; then
+        echo "[FAIL] Missing required APT configuration file in mkosi image: $f"
+        APT_ERRORS=$((APT_ERRORS + 1))
+    fi
+done
+
+if [ "$APT_ERRORS" -eq 0 ]; then
+    echo "[PASS] Core APT source files exist."
+    echo "--- Diff of /etc/apt/sources.list.d/debian.sources:"
+    diff -u "${MNT_OFFICIAL}/etc/apt/sources.list.d/debian.sources" "${MNT_MKOSI}/etc/apt/sources.list.d/debian.sources" || true
+    echo "--- Diff of /etc/apt/mirrors:"
+    diff -u "${MNT_OFFICIAL}/etc/apt/mirrors" "${MNT_MKOSI}/etc/apt/mirrors" || true
+else
+    echo "[FAIL] APT configuration incomplete ($APT_ERRORS errors)."
+fi
+
+echo ""
+echo "=========================================================="
+echo "==> 3. Auditing /etc Configuration Tree..."
 echo "=========================================================="
 diff -urN \
     --exclude="machine-id" \
     --exclude="fstab" \
     --exclude="cloud-release" \
     --exclude="adjtime" \
+    --exclude="alternatives" \
+    --exclude="ssl" \
+    --exclude="shadow*" \
+    --exclude="gshadow*" \
+    --exclude="passwd*" \
+    --exclude="group*" \
+    --exclude="subuid*" \
+    --exclude="subgid*" \
+    --exclude="*.lock" \
     "$MNT_OFFICIAL/etc" "$MNT_MKOSI/etc" > /tmp/etc-diff.txt || true
 
 if [ ! -s /tmp/etc-diff.txt ]; then
@@ -92,7 +129,7 @@ rm -f /tmp/etc-diff.txt
 
 echo ""
 echo "=========================================================="
-echo "==> 3. Auditing Enabled Systemd Units..."
+echo "==> 4. Auditing Enabled Systemd Units..."
 echo "=========================================================="
 UNITS_MKOSI=$(mktemp /tmp/units-mkosi.XXXXXX)
 UNITS_OFFICIAL=$(mktemp /tmp/units-official.XXXXXX)
@@ -110,7 +147,7 @@ rm -f "$UNITS_MKOSI" "$UNITS_OFFICIAL" /tmp/units-diff.txt
 
 echo ""
 echo "=========================================================="
-echo "==> 4. Auditing User & Group Accounts..."
+echo "==> 5. Auditing User & Group Accounts..."
 echo "=========================================================="
 echo "--- /etc/passwd diff (excluding dynamic UID ranges):"
 diff -u "$MNT_OFFICIAL/etc/passwd" "$MNT_MKOSI/etc/passwd" || true
@@ -120,7 +157,7 @@ diff -u "$MNT_OFFICIAL/etc/group" "$MNT_MKOSI/etc/group" || true
 
 echo ""
 echo "=========================================================="
-echo "==> 5. Diffoscope Deep Inspection..."
+echo "==> 6. Diffoscope Deep Inspection..."
 echo "=========================================================="
 if [ "${DIFFOSCOPE:-0}" = "1" ] && command -v diffoscope &>/dev/null; then
     echo "Running diffoscope (generating /tmp/image-parity-report.html)..."
